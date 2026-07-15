@@ -10,5 +10,5 @@ import java.util.List;
 public interface ExpenditureRepository extends JpaRepository<Expenditure,Long> {
 
 
-    List<Expenditure> findByUserId(Long userId);
+    List<Expenditure> findByUserIdOrderByCreatedAtDesc(Long userId);
 }

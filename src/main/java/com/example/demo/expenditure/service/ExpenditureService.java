@@ -65,7 +65,7 @@ public class ExpenditureService {
     }
 
     public List<ExpenditureDto.ExpenditureResponse> getAllExpenditures(Long userId) {
-        List<Expenditure> expenditureList = expenditureRepository.findByUserId(userId);
+        List<Expenditure> expenditureList = expenditureRepository.findByUserIdOrderByCreatedAtDesc(userId);
         if(expenditureList.isEmpty()){
             return List.of();
         }
