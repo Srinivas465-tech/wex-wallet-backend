@@ -183,6 +183,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Provides the docker-container buildx driver, required by cache-to: type=gha below.
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Log in to GHCR
         uses: docker/login-action@v3
         with:
@@ -261,7 +265,6 @@ jobs:
           cache: npm
 
       - run: npm ci
-      - run: npm run lint
       - run: npm run build
 
       - name: Upload build
@@ -296,6 +299,7 @@ jobs:
       packages: write
     steps:
       - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3     # required for cache-to: type=gha
       - uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}

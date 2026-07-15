@@ -1,0 +1,69 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main, master]
+    tags: ['v*']
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}   # ghcr.io/srinivas465-tech/wex-wallet-backend
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Derive image tags
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=semver,pattern={{version}}
+            type=sha                      # immutable per-commit tag used for rollout
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ── real-time rollout ──────────────────────────────────────────────
+  deploy:
+    needs: build-and-push
+    runs-on: self-hosted          # runner on the machine hosting minikube/kind
+    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+
+      # ConfigMap + Secret must exist; safe to re-apply (idempotent).
+      # NOTE: keep real credentials OUT of the repo — see docs/CICD.md §8.
+      - name: Ensure config
+        run: kubectl apply -f k8s/01-config.yaml
+
+      - name: Roll out new image
+        run: |
+          IMAGE=ghcr.io/${GITHUB_REPOSITORY,,}:sha-${GITHUB_SHA::7}
+          kubectl set image deployment/backend backend=$IMAGE
+          kubectl rollout status deployment/backend --timeout=120s
