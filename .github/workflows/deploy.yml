@@ -55,13 +55,10 @@ jobs:
     runs-on: self-hosted          # runner on the machine hosting minikube/kind
     if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
     steps:
-      - uses: actions/checkout@v4
-
-      # ConfigMap + Secret must exist; safe to re-apply (idempotent).
-      # NOTE: keep real credentials OUT of the repo — see docs/CICD.md §8.
-      - name: Ensure config
-        run: kubectl apply -f k8s/01-config.yaml
-
+      # ConfigMap (backend-config) + Secret (backend-secret) are applied
+      # out-of-band from my-wallet/k8s/01-config.yaml and must already exist
+      # in the cluster. They are intentionally NOT in this repo so DB
+      # credentials never land in git. See docs/CICD.md §8.
       - name: Roll out new image
         run: |
           IMAGE=ghcr.io/${GITHUB_REPOSITORY,,}:sha-${GITHUB_SHA::7}
