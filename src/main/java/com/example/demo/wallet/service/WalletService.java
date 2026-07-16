@@ -59,7 +59,7 @@ public class WalletService {
 
 
     public List<WalletDto.walletResponse> getWalletHistory(Long userId) {
-        List<WalletBalance> wallets = walletBalanceRepository.findByUserId(userId);
+        List<WalletBalance> wallets = walletBalanceRepository.findByUserIdOrderByCreatedAtDesc(userId);
         if(wallets.isEmpty()){
             List.of();
         }
