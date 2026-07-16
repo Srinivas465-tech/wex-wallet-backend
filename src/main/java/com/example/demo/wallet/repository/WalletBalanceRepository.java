@@ -9,5 +9,5 @@ import java.util.List;
 @Repository
 public interface WalletBalanceRepository extends JpaRepository<WalletBalance, Long> {
 
-    List<WalletBalance> findByUserId(Long userId);
+    List<WalletBalance> findByUserIdOrderByCreatedAtDesc(Long userId);
 }
