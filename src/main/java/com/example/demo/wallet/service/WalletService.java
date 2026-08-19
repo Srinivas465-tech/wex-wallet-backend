@@ -1,5 +1,6 @@
 package com.example.demo.wallet.service;
 
+import com.example.demo.common.TimeMapper;
 import com.example.demo.wallet.dto.WalletDto;
 import com.example.demo.wallet.model.Wallet;
 import com.example.demo.wallet.model.WalletBalance;
@@ -18,6 +19,7 @@ public class WalletService {
 
     private final WalletBalanceRepository walletBalanceRepository;
     private final WalletRepository walletRepository;
+    private final TimeMapper timeMapper;
 
     public WalletBalance getWallet(Long id){
         return walletBalanceRepository.findById(id).orElseThrow(()->new RuntimeException("Record not found"));
@@ -69,7 +71,7 @@ public class WalletService {
     public WalletDto.walletResponse buildWalletResponse(WalletBalance wallet){
         return WalletDto.walletResponse.builder()
                 .id(wallet.getId())
-                .dateTime(wallet.getCreatedAt())
+                .dateTime(timeMapper.toDisplay(wallet.getCreatedAt()))
                 .amount(wallet.getAmount())
                 .build();
     }

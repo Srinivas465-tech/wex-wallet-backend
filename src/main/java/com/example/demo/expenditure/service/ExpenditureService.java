@@ -1,5 +1,6 @@
 package com.example.demo.expenditure.service;
 
+import com.example.demo.common.TimeMapper;
 import com.example.demo.expenditure.dto.ExpenditureDto;
 import com.example.demo.expenditure.model.Expenditure;
 import com.example.demo.expenditure.repository.ExpenditureRepository;
@@ -20,6 +21,7 @@ public class ExpenditureService {
     private final ExpenditureRepository expenditureRepository;
     private final WalletRepository walletRepository;
     private final WalletService walletService;
+    private final TimeMapper timeMapper;
 
     private Expenditure getOrThrow(Long id){
         return expenditureRepository.findById(id).orElseThrow(()-> new RuntimeException("Record not found"));
@@ -83,7 +85,7 @@ public class ExpenditureService {
                 .amount(expenditure.getAmount())
                 .remainingAmount(expenditure.getRemainingBalance())
                 .category(expenditure.category)
-                .dateTime(expenditure.getCreatedAt())
+                .dateTime(timeMapper.toDisplay(expenditure.getCreatedAt()))
                 .build();
     }
 }
